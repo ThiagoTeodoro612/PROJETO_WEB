@@ -1,1 +1,114 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
 
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-do Lista</title>
+</head>
+
+<body style="font-family: comic sans MS; background-color: black; color: whitesmoke;">
+
+    <center>
+
+        <header>
+            <h1>To-do List</h1>
+        </header>
+
+        <hr>
+
+        <main>
+
+            <!-- Inputs dos dados da Tarefa -->
+            <input type="text" placeholder="Título" id="titulo">
+            <br>
+            <textarea placeholder="Descrição" rows="4" cols="50" id="descricao"></textarea>
+            <br>
+            <input type="date" id="prazo">
+            <br>
+            <button onclick="AdicionarTarefa()">Adicionar Tarefa</button>
+
+            <hr>
+
+            <p id="contador">Número de Tarefas: 0</p>
+
+            <hr>
+
+            <div id="lista"> <!-- Lista que contém as Tarefas -->
+
+            </div>
+
+        </main>
+
+        <footer>
+            <h1>3°DS - 2026</h1>
+        </footer>
+
+    </center>
+
+    <script>
+
+        let vContador = 0;
+        function AtualizarContador(Valor) {
+            vContador += Valor;
+            document.getElementById("contador").innerHTML = `Número de Tarefas: ${vContador}`;
+        }
+
+        function AdicionarTarefa() {
+            const cTitulo = document.getElementById('titulo').value;
+            const cDescricao = document.getElementById('descricao').value;
+
+            const cData = new Date(document.getElementById('prazo').value); //transforma o valor do input do prazo em data
+            const cPrazo = cData.toLocaleDateString(); //converte data para uma string com o formato local
+
+            if (cTitulo.trim() != '' && cDescricao.trim() != '' && cPrazo.trim() != 'Invalid Date') { //usuário deve inserir valores válidos
+                if (cDescricao.length > 3) {
+                    
+                    const novaTarefa = document.createElement('div');
+                    novaTarefa.class = "tarefa"
+                    novaTarefa.innerHTML = `
+                            <h2 class="tituloTarefa">${cTitulo}</h2>
+                            <p class="descricaoTarefa">${cDescricao}</p>
+                            <p class="prazoTarefa">Prazo: ${cPrazo}</p>
+                            
+                            <button onclick="Concluir(this)">Concluir</button>
+                            <button onclick="Remover(this)">Remover</button>
+                            
+                            <hr>
+                        `;
+
+                    const lista = document.getElementById('lista');
+                    lista.appendChild(novaTarefa);
+
+                    AtualizarContador(1);
+                }
+                else {
+                    alert("Descrição deve ter mais de 3 dígitos.")
+                }
+            }
+            else {
+                alert("Insira valores válidos.")
+            }
+
+            titulo.focus();
+            titulo.value = '';
+            descricao.value = '';
+            prazo.value = '';
+        }
+
+        function Concluir(botao) {
+            const tarefa = botao.parentElement; //encontra a div da tarefa do botão
+            tarefa.firstElementChild.style.textDecoration = 'line-through'; //adiciona um linha
+        }
+
+        function Remover(botao) {
+            const tarefa = botao.parentElement;
+            tarefa.remove();
+            AtualizarContador(-1)
+        }
+
+    </script>
+
+</body>
+
+</html>
