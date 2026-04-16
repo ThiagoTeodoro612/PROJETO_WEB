@@ -12,26 +12,26 @@ function Produto(nome, preco, desconto = 0) {
 let loja = []
 
 // Produtos da loja
-Produto("Cesta de Café da Manhã", 89.90);
-Produto("Fone de Ouvido com Fio", 29.99, 20);
-Produto("Camiseta Básica Algodão", 49.90);
-Produto("Garrafa Térmica 500ml", 45.00);
-Produto("Carregador Portátil 10000mAh", 79.90);
-Produto("Mochila Escolar Pequena", 69.99);
-Produto("Filtro de Água de Barro", 95.00, 5);
-Produto("Jogo de Lençóis Casal", 89.99);
-Produto("Ventilador de Mesa 30cm", 99.90);
-Produto("Caixa de Som Bluetooth", 65.00);
-Produto("Kit de Panelas Antiaderente (3 peças)", 99.00);
-Produto("Tênis Esportivo Adulto", 89.99);
-Produto("Relógio Digital de Pulso", 49.90, 5);
-Produto("Jogo de Talheres (24 peças)", 39.90, 5);
-Produto("Ferro de Passar Roupa a Vapor", 89.99);
-Produto("Manta Elétrica 1,5m x 1m", 79.90, 50);
-Produto("Furadeira Elétrica 500W", 99.00);
-Produto("Cadeira de Escritório Simples", 99.90, 15);
-Produto("Vaso de Flores Cerâmica Grande", 45.00);
-Produto("Tapete Borracha para Carro (4 peças)", 59.90, 2);
+new Produto("Cesta de Café da Manhã", 89.90, 2);
+new Produto("Fone de Ouvido com Fio", 29.99, 20);
+new Produto("Camiseta Básica Algodão", 49.90);
+new Produto("Garrafa Térmica 500ml", 45.00);
+new Produto("Carregador Portátil 10000mAh", 79.90);
+new Produto("Mochila Escolar Pequena", 69.99);
+new Produto("Filtro de Água de Barro", 95.00, 5);
+new Produto("Jogo de Lençóis Casal", 89.99);
+new Produto("Ventilador de Mesa 30cm", 99.90);
+new Produto("Caixa de Som Bluetooth", 65.00);
+new Produto("Kit de Panelas Antiaderente (3 peças)", 99.00);
+new Produto("Tênis Esportivo Adulto", 89.99);
+new Produto("Relógio Digital de Pulso", 49.90, 5);
+new Produto("Jogo de Talheres (24 peças)", 39.90, 5);
+new Produto("Ferro de Passar Roupa a Vapor", 89.99);
+new Produto("Manta Elétrica 1,5m x 1m", 79.90, 50);
+new Produto("Furadeira Elétrica 500W", 99.00);
+new Produto("Cadeira de Escritório Simples", 99.90, 15);
+new Produto("Vaso de Flores Cerâmica Grande", 45.00);
+new Produto("Tapete Borracha para Carro (4 peças)", 59.90, 2);
 
 // Filtra um array de produtos pelo seu preco
 function FiltrarPreco(array, preco, min = false) {
