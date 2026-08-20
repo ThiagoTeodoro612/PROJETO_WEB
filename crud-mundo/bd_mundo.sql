@@ -1,5 +1,4 @@
 -- Criação do banco de dados
-DROP DATABASE bd_mundo;
 CREATE DATABASE bd_mundo;
 USE bd_mundo;
 
@@ -154,5 +153,3 @@ INSERT INTO tb_cidades (nome, populacao, area, clima, data_fundacao, id_pais, id
 ('Malmö', 351749, 335.25, '6', '1250-01-01', 6, 6),
 ('Uppsala', 180216, 48.77, '6', '1164-01-01', 6, 6),
 ('Västerås', 131456, 99.12, '6', '990-01-01', 6, 6);
-
-select * from tb_paises;
