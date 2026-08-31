@@ -153,3 +153,32 @@ INSERT INTO tb_cidades (nome, populacao, area, clima, data_fundacao, id_pais, id
 ('Malmö', 351749, 335.25, '6', '1250-01-01', 6, 6),
 ('Uppsala', 180216, 48.77, '6', '1164-01-01', 6, 6),
 ('Västerås', 131456, 99.12, '6', '990-01-01', 6, 6);
+
+CREATE TABLE IF NOT EXISTS tb_usuarios (
+    id_usuario INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    senha VARCHAR(255) NOT NULL,
+    primeiro_login BOOLEAN DEFAULT TRUE,
+    ativo BOOLEAN DEFAULT TRUE,
+    data_cadastro TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS tb_logs (
+    id_log INT AUTO_INCREMENT PRIMARY KEY,
+    id_usuario INT,
+    acao VARCHAR(255) NOT NULL,
+    tabela VARCHAR(50),
+    registro_id INT,
+    dados_antigos TEXT,
+    dados_novos TEXT,
+    ip VARCHAR(45),
+    user_agent TEXT,
+    data_hora TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (id_usuario) REFERENCES tb_usuarios(id_usuario)
+);
+
+-- Usuário padrão (senha: admin123)
+INSERT INTO tb_usuarios (nome, email, senha, primeiro_login) VALUES 
+('Administrador', 'admin@sistema.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', TRUE);
+

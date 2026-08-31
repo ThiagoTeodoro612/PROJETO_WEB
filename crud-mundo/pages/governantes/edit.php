@@ -1,8 +1,8 @@
 <?php
-include '../../include/header.php';
-include '../../config/select.php';
+require_once '../../include/header.php';
+require_once '../../config/database_pdo.php';
+require_once '../../config/log.php';
 
-// Verifica se o ID foi passado
 if (!isset($_GET['id']) || empty($_GET['id'])) {
     header('Location: index.php');
     exit;
@@ -10,64 +10,85 @@ if (!isset($_GET['id']) || empty($_GET['id'])) {
 
 $id_governante = intval($_GET['id']);
 
-// Busca os dados do governante
-$query_governante = "SELECT * FROM tb_governantes WHERE id_governante = $id_governante";
-$governante = select($query_governante);
+$db = Database::getInstance();
+$pdo = $db->getConnection();
 
-if (!$governante || empty($governante)) {
+$stmt = $pdo->prepare("SELECT * FROM tb_governantes WHERE id_governante = :id");
+$stmt->execute([':id' => $id_governante]);
+$governante = $stmt->fetch();
+
+if (!$governante) {
     header('Location: index.php');
     exit;
 }
 
-$governante = $governante[0];
-
-// Processa o formulário
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    include '../../config/update.php';
+    $nome = trim($_POST['nome'] ?? '');
+    $partido_politico = !empty($_POST['partido_politico']) ? trim($_POST['partido_politico']) : null;
+    $data_nascimento = !empty($_POST['data_nascimento']) ? $_POST['data_nascimento'] : null;
+    $idade = !empty($_POST['idade']) ? intval($_POST['idade']) : null;
+    $data_inicio_mandato = !empty($_POST['data_inicio_mandato']) ? $_POST['data_inicio_mandato'] : null;
+    $data_fim_mandato = !empty($_POST['data_fim_mandato']) ? $_POST['data_fim_mandato'] : null;
     
-    // Sanitização dos dados
-    $nome = addslashes($_POST['nome']);
-    $partido_politico = !empty($_POST['partido_politico']) ? "'" . addslashes($_POST['partido_politico']) . "'" : 'NULL';
-    $data_nascimento = !empty($_POST['data_nascimento']) ? "'" . addslashes($_POST['data_nascimento']) . "'" : 'NULL';
-    $idade = !empty($_POST['idade']) ? intval($_POST['idade']) : 'NULL';
-    $data_inicio_mandato = !empty($_POST['data_inicio_mandato']) ? "'" . addslashes($_POST['data_inicio_mandato']) . "'" : 'NULL';
-    $data_fim_mandato = !empty($_POST['data_fim_mandato']) ? "'" . addslashes($_POST['data_fim_mandato']) . "'" : 'NULL';
-
-    $query_update = "UPDATE tb_governantes SET 
-        nome = '$nome',
-        partido_politico = $partido_politico,
-        data_nascimento = $data_nascimento,
-        idade = $idade,
-        data_inicio_mandato = $data_inicio_mandato,
-        data_fim_mandato = $data_fim_mandato
-    WHERE id_governante = $id_governante";
-
-    // Usando a função update()
-    ob_start();
-    update($query_update);
-    $output = ob_get_clean();
-    
-    // Verifica se houve erro na atualização
-    if (strpos($output, 'Erro na atualização') !== false) {
+    if (empty($nome)) {
         echo "<script>
             Swal.fire({
                 title: 'Erro!',
-                text: 'Erro ao atualizar o governante!',
-                icon: 'error',
-                confirmButtonText: 'OK'
+                text: 'Preencha o nome do governante.',
+                icon: 'error'
             });
         </script>";
     } else {
-        echo "<script>
-            Swal.fire({
-                title: 'Sucesso!',
-                text: 'Governante atualizado com sucesso!',
-                icon: 'success',
-                confirmButtonText: 'OK'
-            }).then(() => {
-                window.location.href = 'index.php';
-            });
-        </script>";
+        try {
+            $dados_antigos = $governante;
+            
+            $sql = "UPDATE tb_governantes SET 
+                    nome = :nome,
+                    partido_politico = :partido_politico,
+                    data_nascimento = :data_nascimento,
+                    idade = :idade,
+                    data_inicio_mandato = :data_inicio_mandato,
+                    data_fim_mandato = :data_fim_mandato
+                    WHERE id_governante = :id";
+            
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute([
+                ':nome' => $nome,
+                ':partido_politico' => $partido_politico,
+                ':data_nascimento' => $data_nascimento,
+                ':idade' => $idade,
+                ':data_inicio_mandato' => $data_inicio_mandato,
+                ':data_fim_mandato' => $data_fim_mandato,
+                ':id' => $id_governante
+            ]);
+            
+            registrarLog(
+                $_SESSION['usuario_id'],
+                'Editou governante: ' . $nome,
+                'tb_governantes',
+                $id_governante,
+                $dados_antigos,
+                ['nome' => $nome]
+            );
+            
+            echo "<script>
+                Swal.fire({
+                    title: 'Sucesso!',
+                    text: 'Governante atualizado com sucesso!',
+                    icon: 'success'
+                }).then(() => {
+                    window.location.href = 'index.php';
+                });
+            </script>";
+        } catch (PDOException $e) {
+            echo "<script>
+                Swal.fire({
+                    title: 'Erro!',
+                    text: 'Erro ao atualizar: " . addslashes($e->getMessage()) . "',
+                    icon: 'error'
+                });
+            </script>";
+        }
     }
 }
 ?>
@@ -82,42 +103,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="card-body">
         <form method="POST" id="formEditarGovernante">
             <div class="row">
-                <!-- Nome -->
                 <div class="col-md-6 mb-3">
                     <label for="nome" class="form-label">Nome do Governante *</label>
                     <input type="text" class="form-control" id="nome" name="nome" 
                            value="<?php echo htmlspecialchars($governante['nome']); ?>" required>
                 </div>
-
-                <!-- Partido Político -->
                 <div class="col-md-6 mb-3">
                     <label for="partido_politico" class="form-label">Partido Político</label>
                     <input type="text" class="form-control" id="partido_politico" name="partido_politico" 
                            value="<?php echo htmlspecialchars($governante['partido_politico'] ?? ''); ?>">
                 </div>
-
-                <!-- Data de Nascimento -->
                 <div class="col-md-6 mb-3">
                     <label for="data_nascimento" class="form-label">Data de Nascimento</label>
                     <input type="date" class="form-control" id="data_nascimento" name="data_nascimento" 
                            value="<?php echo $governante['data_nascimento'] ?? ''; ?>">
                 </div>
-
-                <!-- Idade -->
                 <div class="col-md-6 mb-3">
                     <label for="idade" class="form-label">Idade</label>
                     <input type="number" class="form-control" id="idade" name="idade" 
                            value="<?php echo $governante['idade'] ?? ''; ?>" min="0" max="120">
                 </div>
-
-                <!-- Data Início Mandato -->
                 <div class="col-md-6 mb-3">
                     <label for="data_inicio_mandato" class="form-label">Data de Início do Mandato</label>
                     <input type="date" class="form-control" id="data_inicio_mandato" name="data_inicio_mandato" 
                            value="<?php echo $governante['data_inicio_mandato'] ?? ''; ?>">
                 </div>
-
-                <!-- Data Fim Mandato -->
                 <div class="col-md-6 mb-3">
                     <label for="data_fim_mandato" class="form-label">Data de Fim do Mandato</label>
                     <input type="date" class="form-control" id="data_fim_mandato" name="data_fim_mandato" 
@@ -125,50 +135,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <small class="text-muted">Deixe em branco se ainda estiver em exercício</small>
                 </div>
             </div>
-
             <div class="d-flex justify-content-end mt-3">
-                <a href="index.php" class="btn btn-secondary me-2">
-                    <i class="fas fa-times me-1"></i>Cancelar
-                </a>
-                <button type="submit" class="btn btn-warning">
-                    <i class="fas fa-save me-1"></i>Salvar Alterações
-                </button>
+                <a href="index.php" class="btn btn-secondary me-2">Cancelar</a>
+                <button type="submit" class="btn btn-warning">Salvar Alterações</button>
             </div>
         </form>
     </div>
 </div>
 
 <script>
-// Validação do formulário antes de enviar
 document.getElementById('formEditarGovernante').addEventListener('submit', function(e) {
     const nome = document.getElementById('nome').value.trim();
     const idade = document.getElementById('idade').value;
-
-    // Valida campos obrigatórios
+    
     if (!nome) {
         e.preventDefault();
-        Swal.fire({
-            title: 'Campo obrigatório',
-            text: 'Por favor, preencha o nome do governante',
-            icon: 'warning',
-            confirmButtonText: 'OK'
-        });
+        Swal.fire('Atenção!', 'Preencha o nome do governante', 'warning');
         return false;
     }
-
-    // Valida idade se for preenchida
+    
     if (idade && (parseInt(idade) < 0 || parseInt(idade) > 120)) {
         e.preventDefault();
-        Swal.fire({
-            title: 'Valores inválidos',
-            text: 'Idade deve estar entre 0 e 120 anos',
-            icon: 'warning',
-            confirmButtonText: 'OK'
-        });
+        Swal.fire('Atenção!', 'Idade deve estar entre 0 e 120 anos', 'warning');
         return false;
     }
-
-    // Confirmação antes de salvar
+    
     e.preventDefault();
     Swal.fire({
         title: 'Confirmar alterações',
@@ -186,7 +177,6 @@ document.getElementById('formEditarGovernante').addEventListener('submit', funct
     });
 });
 
-// Calcular idade automaticamente quando data de nascimento for preenchida
 document.getElementById('data_nascimento').addEventListener('change', function() {
     if (this.value) {
         const nascimento = new Date(this.value);
@@ -203,6 +193,4 @@ document.getElementById('data_nascimento').addEventListener('change', function()
 });
 </script>
 
-<?php
-include '../../include/footer.php';
-?>
+<?php require_once '../../include/footer.php'; ?>

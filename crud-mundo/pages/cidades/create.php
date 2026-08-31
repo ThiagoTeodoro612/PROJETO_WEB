@@ -1,70 +1,76 @@
 <?php
-include '../../include/header.php';
-include '../../config/select.php';
+require_once '../../include/header.php';
+require_once '../../config/database_pdo.php';
+require_once '../../config/log.php';
 
-// Busca países para o select
-$paises = select("SELECT id_pais, nome FROM tb_paises ORDER BY nome");
+$db = Database::getInstance();
+$pdo = $db->getConnection();
 
-// Busca governantes para o select
-$governantes = select("SELECT id_governante, nome FROM tb_governantes ORDER BY nome");
+$paises = $pdo->query("SELECT id_pais, nome FROM tb_paises ORDER BY nome")->fetchAll();
+$governantes = $pdo->query("SELECT id_governante, nome FROM tb_governantes ORDER BY nome")->fetchAll();
 
-// Processa o formulário
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    include '../../config/insert.php';
+    $nome = trim($_POST['nome'] ?? '');
+    $populacao = !empty($_POST['populacao']) ? intval($_POST['populacao']) : null;
+    $area = floatval($_POST['area'] ?? 0);
+    $clima = intval($_POST['clima'] ?? 0);
+    $data_fundacao = !empty($_POST['data_fundacao']) ? $_POST['data_fundacao'] : null;
+    $id_pais = intval($_POST['id_pais'] ?? 0);
+    $id_governante = !empty($_POST['id_governante']) ? intval($_POST['id_governante']) : null;
     
-    // Sanitização dos dados
-    $nome = addslashes($_POST['nome']);
-    $populacao = !empty($_POST['populacao']) ? intval($_POST['populacao']) : 'NULL';
-    $area = floatval($_POST['area']);
-    $clima = intval($_POST['clima']);
-    $data_fundacao = !empty($_POST['data_fundacao']) ? "'" . addslashes($_POST['data_fundacao']) . "'" : 'NULL';
-    $id_pais = intval($_POST['id_pais']);
-    $id_governante = !empty($_POST['id_governante']) ? intval($_POST['id_governante']) : 'NULL';
-
-    $query_insert = "INSERT INTO tb_cidades (
-        nome, 
-        populacao, 
-        area, 
-        clima, 
-        data_fundacao,
-        id_pais, 
-        id_governante
-    ) VALUES (
-        '$nome',
-        $populacao,
-        $area,
-        $clima,
-        $data_fundacao,
-        $id_pais,
-        $id_governante
-    )";
-
-    // Usando a função insert()
-    ob_start();
-    insert($query_insert);
-    $output = ob_get_clean();
-    
-    // Verifica se houve erro na inserção
-    if (strpos($output, 'Erro:') !== false) {
+    if (empty($nome) || $area <= 0 || $id_pais <= 0) {
         echo "<script>
             Swal.fire({
                 title: 'Erro!',
-                text: 'Erro ao cadastrar a cidade! Verifique os dados.',
-                icon: 'error',
-                confirmButtonText: 'OK'
+                text: 'Preencha todos os campos obrigatórios.',
+                icon: 'error'
             });
         </script>";
     } else {
-        echo "<script>
-            Swal.fire({
-                title: 'Sucesso!',
-                text: 'Cidade cadastrada com sucesso!',
-                icon: 'success',
-                confirmButtonText: 'OK'
-            }).then(() => {
-                window.location.href = 'index.php';
-            });
-        </script>";
+        try {
+            $sql = "INSERT INTO tb_cidades (nome, populacao, area, clima, data_fundacao, id_pais, id_governante) 
+                    VALUES (:nome, :populacao, :area, :clima, :data_fundacao, :id_pais, :id_governante)";
+            
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute([
+                ':nome' => $nome,
+                ':populacao' => $populacao,
+                ':area' => $area,
+                ':clima' => $clima,
+                ':data_fundacao' => $data_fundacao,
+                ':id_pais' => $id_pais,
+                ':id_governante' => $id_governante
+            ]);
+            
+            $id = $pdo->lastInsertId();
+            
+            registrarLog(
+                $_SESSION['usuario_id'],
+                'Cadastrou cidade: ' . $nome,
+                'tb_cidades',
+                $id,
+                null,
+                ['nome' => $nome, 'area' => $area, 'clima' => $clima]
+            );
+            
+            echo "<script>
+                Swal.fire({
+                    title: 'Sucesso!',
+                    text: 'Cidade cadastrada com sucesso!',
+                    icon: 'success'
+                }).then(() => {
+                    window.location.href = 'index.php';
+                });
+            </script>";
+        } catch (PDOException $e) {
+            echo "<script>
+                Swal.fire({
+                    title: 'Erro!',
+                    text: 'Erro ao cadastrar: " . addslashes($e->getMessage()) . "',
+                    icon: 'error'
+                });
+            </script>";
+        }
     }
 }
 ?>
@@ -79,14 +85,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="card-body">
         <form method="POST" id="formCadastrarCidade">
             <div class="row">
-                <!-- Nome da Cidade -->
                 <div class="col-md-6 mb-3">
                     <label for="nome" class="form-label">Nome da Cidade *</label>
-                    <input type="text" class="form-control" id="nome" name="nome" 
-                           placeholder="Digite o nome da cidade" required>
+                    <input type="text" class="form-control" id="nome" name="nome" required>
                 </div>
-
-                <!-- País -->
                 <div class="col-md-6 mb-3">
                     <label for="id_pais" class="form-label">País *</label>
                     <select class="form-control" id="id_pais" name="id_pais" required>
@@ -98,23 +100,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <?php } ?>
                     </select>
                 </div>
-
-                <!-- População -->
                 <div class="col-md-6 mb-3">
                     <label for="populacao" class="form-label">População</label>
-                    <input type="number" class="form-control" id="populacao" name="populacao" 
-                           placeholder="Ex: 13960000" min="0">
-                    <small class="text-muted">Deixe em branco se não souber</small>
+                    <input type="number" class="form-control" id="populacao" name="populacao" min="0">
                 </div>
-
-                <!-- Área -->
                 <div class="col-md-6 mb-3">
                     <label for="area" class="form-label">Área (km²) *</label>
-                    <input type="number" step="0.01" class="form-control" id="area" name="area" 
-                           placeholder="Ex: 2194.07" required min="0">
+                    <input type="number" step="0.01" class="form-control" id="area" name="area" required min="0">
                 </div>
-
-                <!-- Clima -->
                 <div class="col-md-6 mb-3">
                     <label for="clima" class="form-label">Clima *</label>
                     <select class="form-control" id="clima" name="clima" required>
@@ -128,14 +121,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <option value="6">Subpolar</option>
                     </select>
                 </div>
-
-                <!-- Data de Fundação -->
                 <div class="col-md-6 mb-3">
                     <label for="data_fundacao" class="form-label">Data de Fundação</label>
                     <input type="date" class="form-control" id="data_fundacao" name="data_fundacao">
                 </div>
-
-                <!-- Governante -->
                 <div class="col-md-12 mb-3">
                     <label for="id_governante" class="form-label">Governante</label>
                     <select class="form-control" id="id_governante" name="id_governante">
@@ -146,68 +135,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </option>
                         <?php } ?>
                     </select>
-                    <small class="text-muted">O governante pode ser cadastrado separadamente na tabela de governantes.</small>
                 </div>
             </div>
-
             <div class="d-flex justify-content-end mt-3">
-                <a href="index.php" class="btn btn-secondary me-2">
-                    <i class="fas fa-times me-1"></i>Cancelar
-                </a>
-                <button type="submit" class="btn btn-success">
-                    <i class="fas fa-save me-1"></i>Cadastrar Cidade
-                </button>
+                <a href="index.php" class="btn btn-secondary me-2">Cancelar</a>
+                <button type="submit" class="btn btn-success">Cadastrar</button>
             </div>
         </form>
     </div>
 </div>
 
 <script>
-// Validação do formulário antes de enviar
 document.getElementById('formCadastrarCidade').addEventListener('submit', function(e) {
     const nome = document.getElementById('nome').value.trim();
     const area = document.getElementById('area').value;
     const id_pais = document.getElementById('id_pais').value;
     const clima = document.getElementById('clima').value;
-
-    // Valida campos obrigatórios
+    
     if (!nome || !area || !id_pais || !clima) {
         e.preventDefault();
-        Swal.fire({
-            title: 'Campos obrigatórios',
-            text: 'Por favor, preencha todos os campos com *',
-            icon: 'warning',
-            confirmButtonText: 'OK'
-        });
+        Swal.fire('Atenção!', 'Preencha todos os campos com *', 'warning');
         return false;
     }
-
-    // Valida valores numéricos
-    if (parseFloat(area) < 0) {
-        e.preventDefault();
-        Swal.fire({
-            title: 'Valores inválidos',
-            text: 'Área não pode ser negativa',
-            icon: 'warning',
-            confirmButtonText: 'OK'
-        });
-        return false;
-    }
-
-    // Valida população se for preenchida
-    const populacao = document.getElementById('populacao').value;
-    if (populacao && parseInt(populacao) < 0) {
-        e.preventDefault();
-        Swal.fire({
-            title: 'Valores inválidos',
-            text: 'População não pode ser negativa',
-            icon: 'warning',
-            confirmButtonText: 'OK'
-        });
-        return false;
-    }
-
-    // Confirmação antes de salvar
+    
     e.preventDefault();
     Swal.fire({
         title: 'Confirmar cadastro',
@@ -224,18 +174,6 @@ document.getElementById('formCadastrarCidade').addEventListener('submit', functi
         }
     });
 });
-
-// Máscara para formatação de população (apenas números)
-document.getElementById('populacao').addEventListener('input', function() {
-    this.value = this.value.replace(/[^0-9]/g, '');
-});
-
-// Máscara para área (apenas números e ponto)
-document.getElementById('area').addEventListener('input', function() {
-    this.value = this.value.replace(/[^0-9.]/g, '');
-});
 </script>
 
-<?php
-include '../../include/footer.php';
-?>
+<?php require_once '../../include/footer.php'; ?>

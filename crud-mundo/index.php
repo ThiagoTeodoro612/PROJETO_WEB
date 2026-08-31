@@ -1,5 +1,22 @@
 <?php
-include 'include/header.php'
+include 'include/header.php';
+require_once 'config/database_pdo.php';
+
+$db = Database::getInstance();
+$pdo = $db->getConnection();
+
+$stats = [];
+$queries = [
+    'total_paises' => "SELECT COUNT(*) as total FROM tb_paises",
+    'total_cidades' => "SELECT COUNT(*) as total FROM tb_cidades",
+    'total_continentes' => "SELECT COUNT(*) as total FROM tb_continentes",
+    'total_governantes' => "SELECT COUNT(*) as total FROM tb_governantes"
+];
+
+foreach ($queries as $key => $sql) {
+    $stmt = $pdo->query($sql);
+    $stats[$key] = $stmt->fetch()['total'];
+}
 ?>
 
 <div class="row">
@@ -48,23 +65,6 @@ include 'include/header.php'
                     </div>
                 </div>
 
-                <?php
-                // Estatísticas
-                include 'config/select.php';
-
-                $stats = [];
-                $queries = [
-                    'total_paises' => "SELECT COUNT(*) as total FROM tb_paises",
-                    'total_cidades' => "SELECT COUNT(*) as total FROM tb_cidades",
-                    'total_continentes' => "SELECT COUNT(*) as total FROM tb_continentes",
-                    'total_governantes' => "SELECT COUNT(*) as total FROM tb_governantes"
-                ];
-
-                foreach ($queries as $key => $sql) {
-                    $stats[$key] = select($sql)[0]['total'];
-                };
-                ?>
-
                 <div class="row mt-4">
                     <div class="col-12">
                         <div class="card">
@@ -99,6 +99,4 @@ include 'include/header.php'
     </div>
 </div>
 
-<?php
-include 'include/footer.php'
-?>
+<?php include 'include/footer.php'; ?>

@@ -1,34 +1,53 @@
 <?php
-include '../../config/delete.php'; 
-include '../../config/select.php';
-
-// DEBUG - ver o que está chegando
-error_log('POST recebido: ' . print_r($_POST, true));
+require_once '../../config/database_pdo.php';
+require_once '../../config/log.php';
 
 if (isset($_POST['id']) && !empty($_POST['id'])) {
     $id = intval($_POST['id']);
-    error_log('ID processado: ' . $id);  // DEBUG
     
-
-    $query_select = select("SELECT * FROM tb_cidades WHERE id_pais = $id");
-    if($query_select) {
-        header('Content-Type: application/json');
-        echo json_encode(['success' => false, 'message' => 'A exclusão das cidade devem ser feitas antes da exclusão de seu país!']);
-    } else {
-        $query_delete = "DELETE FROM tb_paises WHERE id_pais = $id";  // ou id, dependendo da sua tabela
+    try {
+        $db = Database::getInstance();
+        $pdo = $db->getConnection();
         
-        $result = delete($query_delete);
+        $stmt = $pdo->prepare("SELECT * FROM tb_paises WHERE id_pais = :id");
+        $stmt->execute([':id' => $id]);
+        $dados = $stmt->fetch();
         
-        header('Content-Type: application/json');
-        if ($result) {
-            echo json_encode(['success' => true, 'message' => 'País excluído com sucesso!']);
-        } else {
-            echo json_encode(['success' => false, 'message' => 'Erro ao excluir país!']);
+        if (!$dados) {
+            echo json_encode(['success' => false, 'message' => 'País não encontrado!']);
+            exit;
         }
+        
+        $stmt = $pdo->prepare("SELECT COUNT(*) as total FROM tb_cidades WHERE id_pais = :id");
+        $stmt->execute([':id' => $id]);
+        $total = $stmt->fetch();
+        
+        if ($total['total'] > 0) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Não é possível excluir! Existem ' . $total['total'] . ' cidades associadas.'
+            ]);
+            exit;
+        }
+        
+        $stmt = $pdo->prepare("DELETE FROM tb_paises WHERE id_pais = :id");
+        $stmt->execute([':id' => $id]);
+        
+        registrarLog(
+            $_SESSION['usuario_id'],
+            'Excluiu país: ' . $dados['nome'],
+            'tb_paises',
+            $id,
+            $dados,
+            null
+        );
+        
+        echo json_encode(['success' => true, 'message' => 'País excluído com sucesso!']);
+    } catch (PDOException $e) {
+        echo json_encode(['success' => false, 'message' => 'Erro ao excluir: ' . $e->getMessage()]);
     }
 } else {
-    header('Content-Type: application/json');
-    echo json_encode(['success' => false, 'message' => 'ID não fornecido! POST: ' . print_r($_POST, true)]);
+    echo json_encode(['success' => false, 'message' => 'ID não fornecido!']);
 }
 exit;
 ?>
