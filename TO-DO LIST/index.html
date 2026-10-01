@@ -48,10 +48,10 @@
 
     <script>
 
-        let vContador = 0;
-        function AtualizarContador(Valor) {
-            vContador += Valor;
-            document.getElementById("contador").innerHTML = `Número de Tarefas: ${vContador}`;
+        let contadorTarefas = 0;
+        function atualizarContador(valor) {
+            contadorTarefas += valor;
+            document.getElementById("contador").innerHTML = `Número de Tarefas: ${contadorTarefas}`;
         }
 
         function AdicionarTarefa() {
@@ -65,17 +65,17 @@
                 if (cDescricao.length > 3) {
                     
                     const novaTarefa = document.createElement('div');
-                    novaTarefa.class = "tarefa"
+                    novaTarefa.className = "tarefa";
                     novaTarefa.innerHTML = `
-                            <h2 class="tituloTarefa">${cTitulo}</h2>
-                            <p class="descricaoTarefa">${cDescricao}</p>
-                            <p class="prazoTarefa">Prazo: ${cPrazo}</p>
+                        <h2 class="tituloTarefa">${cTitulo}</h2>
+                        <p class="descricaoTarefa">${cDescricao}</p>
+                        <p class="prazoTarefa">Prazo: ${cPrazo}</p>
                             
-                            <button onclick="Concluir(this)">Concluir</button>
-                            <button onclick="Remover(this)">Remover</button>
+                        <button onclick="Concluir(this)">Concluir</button>
+                        <button onclick="Remover(this)">Remover</button>
                             
-                            <hr>
-                        `;
+                        <hr>
+                    `;
 
                     const lista = document.getElementById('lista');
                     lista.appendChild(novaTarefa);
@@ -90,10 +90,10 @@
                 alert("Insira valores válidos.")
             }
 
-            titulo.focus();
-            titulo.value = '';
-            descricao.value = '';
-            prazo.value = '';
+            document.getElementById('titulo').focus();
+            document.getElementById('titulo').value = '';
+            document.getElementById('descricao').value = '';
+            document.getElementById('prazo').value = '';
         }
 
         function Concluir(botao) {
