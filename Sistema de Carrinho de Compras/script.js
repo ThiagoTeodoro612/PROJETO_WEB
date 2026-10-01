@@ -74,7 +74,7 @@ function AtualizarLojaFiltro(filtro) {
         case Filtro.SEM: // Sem filtros
             loja_filtrada = loja;
             texto.innerHTML = "Nenhum";
-            for (var i = 0; i < botoes.length; i++) {
+            for (let i = 0; i < botoes.length; i++) {
                 if (botoes[i].name == "nenhum") {
                     botoes[i].disabled = true;
                 }
@@ -132,7 +132,7 @@ function AtualizarLojaFiltro(filtro) {
 
         // Cria as variáveis que vão armazenar o HTML do preço e desconto do produto
         let desconto_html = "";
-        let preco_html = "";
+        let precoHtml = "";
         if (produto.desconto > 0) {
             
             // Calcula o preço com desconto
@@ -140,7 +140,7 @@ function AtualizarLojaFiltro(filtro) {
 
             // Cria o HTML
             desconto_html = ` <span class="badge bg-success">-${produto.desconto}%</span>`;
-            preco_html = `
+            precoHtml = `
                 <p class="fs-6 text-muted lh-1">De: <strike>R$ ${preco.toFixed(2)}</strike>
                 </p><p class="fs-5">Por: R$ ${preco_desconto.toFixed(2)}</p>
             `
@@ -149,7 +149,7 @@ function AtualizarLojaFiltro(filtro) {
 
             // Cria o HTML
             desconto_html = "";
-            preco_html = `<p class="fs-5">Por: R$ ${preco.toFixed(2)}</p>`;
+            precoHtml = `<p class="fs-5">Por: R$ ${preco.toFixed(2)}</p>`;
         }
 
         // Cria o elemento que será adicionado ao HTML
@@ -163,7 +163,7 @@ function AtualizarLojaFiltro(filtro) {
             <div class="text-center">
                 <h3 class="text-center">${nome}${desconto_html}</h3>
                 <hr>
-                ${preco_html}
+                ${precoHtml}
 
                 <button type="button" class="btn btn-primary btn-sm border border-dark"
                     onclick='AdicionarCarrinho("${nome}",1)'>
@@ -178,15 +178,8 @@ function AtualizarLojaFiltro(filtro) {
 }
 
 // Puxa um produto da loja com base em seu nome
-function PegarProdutoLoja(nome) { 
-    let produto = loja[
-        loja.map( //Cria um array com apenas os nomes dos objetos
-            function (produto) {
-                return produto.nome;
-            }
-        ).indexOf(nome) //Pega o index do nome que foi inserido e o usa para pegar o objeto do produto na loja
-    ]
-    return produto;
+function pegarProdutoLoja(nome) {
+    return loja.find(produto => produto.nome === nome);
 }
 
 //#endregion
@@ -315,19 +308,19 @@ function AtualizarCarrinho() {
 
             // Cria as variáveis que vão armazenar o HTML do preço e desconto do produto
             let desconto_html = "";
-            let preco_html = "";
+            let precoHtml = "";
 
             // Faz o HTML do produto, podendo variar se houver desconto
             if (produto.desconto > 0) {
                 desconto_html = ` <span class="badge bg-success">-${produto.desconto}%</span>`;
-                preco_html = `
+                precoHtml = `
                 <p class="fs-6 text-muted lh-1">De: <strike>R$ ${(preco * quantidade * quantidade).toFixed(2)} (<i>R$ ${preco.toFixed(2)} x ${quantidade}</i>)</strike></p>
-                <p class="fs-5">Por: <bold>R$ ${(preco_desconto * quantidade).toFixed(2)}<bold> <br> (<i>R$ ${preco_desconto.toFixed(2)} x ${quantidade}</i>)</p>
+                <p class="fs-5">Por: <b>R$ ${(preco_desconto * quantidade).toFixed(2)}<b> <br> (<i>R$ ${preco_desconto.toFixed(2)} x ${quantidade}</i>)</p>
                 `
             }
             else {
                 desconto_html = "";
-                preco_html = `<p class="fs-5">Por: <b>R$ ${(preco * quantidade).toFixed(2)}</b> <br> (<i>R$ ${preco.toFixed(2)} x ${quantidade}</i>)</p>`;
+                precoHtml = `<p class="fs-5">Por: <b>R$ ${(preco * quantidade).toFixed(2)}</b> <br> (<i>R$ ${preco.toFixed(2)} x ${quantidade}</i>)</p>`;
             }
 
             // Cria o elemento que será adicionado ao HTML
@@ -342,7 +335,7 @@ function AtualizarCarrinho() {
                     <h3 class="text-center">${nome}${desconto_html}</h3>
                     <hr>
                     <p>Quantidade: ${quantidade}</p>
-                    ${preco_html}
+                    ${precoHtml}
                     <div class="btn-group-vertical" role="group">
                         <button type="button" class="btn btn-danger border border-dark border-top-0 border-left-0 border-right-0"
                             onclick='RemoverCarrinhoQuantidade("${nome}",1)'>
