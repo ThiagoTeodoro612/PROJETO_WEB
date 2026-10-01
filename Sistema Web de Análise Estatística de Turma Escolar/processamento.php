@@ -1,16 +1,16 @@
 <?php
 // Funções próprias para cálculos
-function calcularMedia($nota1, $nota2, $trabalho) {
-    return ($nota1 + $nota2 + $trabalho) / 3;
+function calcularMedia($notaProva1, $notaProva2, $notaTrabalho) {
+    return ($notaProva1 + $notaProva2 + $notaTrabalho) / 3;
 }
 
-function calcularRaizQuadradaSoma($nota1, $nota2, $trabalho) {
-    $soma = $nota1 + $nota2 + $trabalho;
+function calcularRaizQuadradaSoma($notaProva1, $notaProva2, $notaTrabalho) {
+    $soma = $notaProva1 + $notaProva2 + $notaTrabalho;
     return sqrt($soma);
 }
 
-function calcularDiferencaAbsoluta($nota1, $nota2, $trabalho) {
-    $notas = [$nota1, $nota2, $trabalho];
+function calcularDiferencaAbsoluta($notaProva1, $notaProva2, $notaTrabalho) {
+    $notas = [$notaProva1, $notaProva2, $notaTrabalho];
     return abs(max($notas) - min($notas));
 }
 
@@ -57,19 +57,19 @@ $totalReprovados = 0;
 
 // Processar cada aluno
 foreach ($alunos as $index => $dados) {
-    $nota1 = floatval($dados['nota1']);
-    $nota2 = floatval($dados['nota2']);
-    $trabalho = floatval($dados['trabalho']);
+    $notaProva1 = is_numeric($dados['nota1']) ? floatval($dados['nota1']) : 0;
+    $notaProva2 = is_numeric($dados['nota2']) ? floatval($dados['nota2']) : 0;
+    $notaTrabalho = is_numeric($dados['trabalho']) ? floatval($dados['trabalho']) : 0;
     
     // Cálculos individuais
-    $media = calcularMedia($nota1, $nota2, $trabalho);
-    $raizQuadrada = calcularRaizQuadradaSoma($nota1, $nota2, $trabalho);
-    $diferencaAbs = calcularDiferencaAbsoluta($nota1, $nota2, $trabalho);
+    $media = calcularMedia($notaProva1, $notaProva2, $notaTrabalho);
+    $raizQuadrada = calcularRaizQuadradaSoma($notaProva1, $notaProva2, $notaTrabalho);
+    $diferencaAbs = calcularDiferencaAbsoluta($notaProva1, $notaProva2, $notaTrabalho);
     $situacao = determinarSituacao($media);
     
     // Contabilizar para estatísticas da turma
     $todasMedias[] = $media;
-    $somaTotalNotas += ($nota1 + $nota2 + $trabalho);
+    $somaTotalNotas += ($notaProva1 + $notaProva2 + $notaTrabalho);
     
     if ($situacao['status'] == 'Aprovado') {
         $totalAprovados++;
@@ -82,9 +82,9 @@ foreach ($alunos as $index => $dados) {
     // Armazenar dados do aluno
     $dadosAlunos[] = [
         'nome' => htmlspecialchars($dados['nome']),
-        'nota1' => $nota1,
-        'nota2' => $nota2,
-        'trabalho' => $trabalho,
+        'nota1' => $notaProva1,
+        'nota2' => $notaProva2,
+        'trabalho' => $notaTrabalho,
         'media' => $media,
         'raizQuadrada' => $raizQuadrada,
         'diferencaAbs' => $diferencaAbs,
