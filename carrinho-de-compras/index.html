@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-bs-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
+        crossorigin="anonymous"></script>
+
+    <title>E-Commerce</title>
+</head>
+
+<body onload='AtualizarLojaFiltro(Filtro.SEM); AtualizarCarrinho();'>
+
+    <header>
+        <div class="mt-4 p-2 text-white rounded text-center">
+            <h1>E-Commerce</h1>
+            <p>Carrinho de Compras!</p>
+        </div>
+    </header>
+
+    <hr>
+
+    <main>
+
+        <div class="container-0 px-5 m-2 border justify-content-center"> <!-- Container Geral -->
+            <div class="row">
+                <div class="col justify-content-center px-5 m-2 border"> <!-- Seção da Loja -->
+
+                    <div class="row mt-4 p-2 text-white rounded text-center"> <!-- Título da Loja -->
+                        <h2>Loja</h2>
+                    </div>
+
+                    <hr>
+
+                    <div id="filtro"> <!-- Div do filtro -->
+                        <h4>Filtro <span class="badge bg-info" id="filtro_texto">Nenhum</span></h4>
+                        <!-- Filtro selecionado -->
+                        <br>
+                        <!-- Botões para alterar filtro -->
+                        <button name="nenhum" type="button" class="btn btn-dark btn-sm border-white"
+                            onclick='AtualizarLojaFiltro(Filtro.SEM)'>
+                            Remover filtro
+                        </button>
+                        <button name="maior que 50" type="button" class="btn btn-dark btn-sm border-white"
+                            onclick='AtualizarLojaFiltro(Filtro.MQ50)'>
+                            Maior que R$ 50.00
+                        </button>
+                        <button name="ate 50" type="button" class="btn btn-dark btn-sm border-white"
+                            onclick='AtualizarLojaFiltro(Filtro.A50)'>
+                            Até R$ 50.00
+                        </button>
+                    </div>
+
+                    <hr>
+
+                    <div class="row justify-content-center mb-2">
+                        <div id="lista de produtos"
+                            class="row justify-content-center justify-content-md-around row-cols-auto">
+                            <!-- Div contendo os produtos da loja -->
+
+                        </div>
+                    </div>
+
+                </div>
+
+                <br>
+
+                <div class="col justify-content-center px-5 m-2 border"> <!-- Seção do carrinho -->
+
+                    <div class="row mt-4 p-2 text-white rounded text-center"> <!-- Título do Carrinho -->
+                        <h2>Carrinho de Compras</h2>
+                    </div>
+
+                    <hr>
+
+                    <div class="row mt-4 text-white rounded text-center"> <!-- Valor Total -->
+                        <h5 id="valor_total"></h5>
+                        <div>
+                            <button type="button" class="btn btn-danger btn-lg border-dark mt-4 mb-2" onclick='LimparCarrinho()'>
+                                Limpar Carrinho
+                            </button>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class="row justify-content-center mb-2">
+                        <div id="carrinho" class="row justify-content-center justify-content-md-around row-cols-auto">
+                            <!-- Div contendo o carrinho -->
+
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <footer>
+        <div class="mt-4 p-2 text-white rounded text-center">
+            <h2>3 DS</h2>
+            <p>Thiago Gouveia Faria Teodoro</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+
+</body>
+
+</html>
